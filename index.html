@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .img-container {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+      }
+      .img-container__left {
+        width: 50%;
+        height: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="img-container">
+      <div class="img-container__left"></div>
+      <div class="img-container__right"></div>
+    </div>
+  </body>
+  <script>
+    window.addEventListener("DOMContentLoaded", (e) => {
+      fetch("./photo/reference/animal", { mode: "no-cors" })
+        .then((response) => response.text())
+        .then((data) => new DOMParser().parseFromString(data, "text/html"))
+        .then((dom) => {
+          const files = dom.getElementById("files").children;
+          files[0].remove();
+          Array.prototype.forEach.call(files, (item) => {
+            // const img = document.createElement("img");
+            // img.src = item.querySelector("a").href;
+            console.log(item.querySelector("a").href);
+            document.querySelector(
+              ".img-container__left"
+            ).style.backgroundImage = `url('${item.querySelector("a").href}')`;
+          });
+        });
+
+      fetch("./photo/reference/character")
+        .then((response) => response.text())
+        .then((data) => new DOMParser().parseFromString(data, "text/html"))
+        .then((dom) => {
+          const files = dom.getElementById("files").children;
+          files[0].remove();
+          Array.prototype.forEach.call(files, (item) => {
+            const img = document.createElement("img");
+            img.src = item.querySelector("a").href;
+            document.querySelector(".img-container__right").appendChild(img);
+          });
+        });
+    });
+  </script>
+</html>
+[]
