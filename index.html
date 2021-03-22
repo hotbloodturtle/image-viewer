@@ -11,56 +11,93 @@
         width: 100vw;
         height: 100vh;
       }
-      .img-container__left {
+      .img-container__left,
+      .img-container__right {
         width: 50%;
-        height: 50%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .img-container__left {
+        justify-content: flex-end;
+      }
+      .img-container__right {
+        justify-content: flex-start;
+      }
+      img {
+        max-width: 60%;
       }
     </style>
   </head>
   <body>
     <div class="img-container">
-      <div class="img-container__left"></div>
-      <div class="img-container__right"></div>
+      <div class="img-container__left">
+        <img src="" alt="" id="left-img" />
+      </div>
+      <div class="img-container__right">
+        <img src="" alt="" id="right-img" />
+      </div>
     </div>
   </body>
   <script>
-    /*
-      todo
-      init
-      dataLoaded
-      renderImages
-      nextClick (space btn)
-    */
+    let store = {
+      animalImages: [],
+      characterImages: [],
+      minCount: 0,
+    };
+
+    const setStore = (animalImages = [], characterImages = []) => {
+      store.animalImages = [...store.animalImages, ...animalImages];
+      store.characterImages = [...store.characterImages, ...characterImages];
+    };
+
+    const getData = (url) => {
+      return new Promise((resolve, reject) => {
+        fetch(url)
+          .then((response) => response.text())
+          .then((text) => new DOMParser().parseFromString(text, "text/html"))
+          .then((dom) => {
+            const files = dom.getElementById("files").children;
+            files[0].remove();
+            resolve(
+              Array.prototype.map.call(
+                files,
+                (item) => item.querySelector("a").href
+              )
+            );
+          });
+      });
+    };
+
+    const getRandomInt = (min, max) => {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min;
+    };
+
+    const renderImage = () => {
+      document.getElementById("left-img").src =
+        store.animalImages[getRandomInt(0, store.animalImages.length)];
+
+      document.getElementById("right-img").src =
+        store.characterImages[getRandomInt(0, store.characterImages.length)];
+    };
 
     window.addEventListener("DOMContentLoaded", (e) => {
-      fetch("./photo/reference/animal", { mode: "no-cors" })
-        .then((response) => response.text())
-        .then((data) => new DOMParser().parseFromString(data, "text/html"))
-        .then((dom) => {
-          const files = dom.getElementById("files").children;
-          files[0].remove();
-          Array.prototype.forEach.call(files, (item) => {
-            // const img = document.createElement("img");
-            // img.src = item.querySelector("a").href;
-            console.log(item.querySelector("a").href);
-            document.querySelector(
-              ".img-container__left"
-            ).style.backgroundImage = `url('${item.querySelector("a").href}')`;
-          });
+      getData("./photo/reference/animal").then((images) => {
+        setStore(images);
+        getData("./photo/reference/character").then((images) => {
+          setStore([], images);
+          renderImage(store.animalImages);
         });
+      });
+    });
 
-      fetch("./photo/reference/character")
-        .then((response) => response.text())
-        .then((data) => new DOMParser().parseFromString(data, "text/html"))
-        .then((dom) => {
-          const files = dom.getElementById("files").children;
-          files[0].remove();
-          Array.prototype.forEach.call(files, (item) => {
-            const img = document.createElement("img");
-            img.src = item.querySelector("a").href;
-            document.querySelector(".img-container__right").appendChild(img);
-          });
-        });
+    window.addEventListener("keyup", (e) => {
+      if (e.keyCode === 32) {
+        renderImage();
+      }
     });
   </script>
 </html>
