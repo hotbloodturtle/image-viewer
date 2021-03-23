@@ -24,9 +24,11 @@
       }
       .img-container__right {
         justify-content: flex-start;
+        margin-left: 50px;
       }
       img {
         max-width: 60%;
+        min-width: 500px;
       }
     </style>
   </head>
@@ -85,9 +87,9 @@
     };
 
     window.addEventListener("DOMContentLoaded", (e) => {
-      getData("./photo/reference/animal").then((images) => {
+      getData("../photo/reference/animal").then((images) => {
         setStore(images);
-        getData("./photo/reference/character").then((images) => {
+        getData("../photo/reference/character").then((images) => {
           setStore([], images);
           renderImage(store.animalImages);
         });
