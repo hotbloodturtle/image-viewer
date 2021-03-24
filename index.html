@@ -30,6 +30,28 @@
         max-width: 60%;
         min-width: 500px;
       }
+
+      @media (max-width: 1000px) {
+        img {
+          min-width: 250px;
+        }
+        body {
+          transform: rotate(90deg);
+        }
+        .img-container {
+          width: 100vh;
+          height: 100vw;
+          display: flex;
+          align-items: center;
+        }
+        .img-container__left,
+        .img-container__right {
+          width: 100%;
+        }
+        .img-container__right {
+          margin-left: 20px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -100,6 +122,9 @@
       if (e.keyCode === 32) {
         renderImage();
       }
+    });
+    document.body.addEventListener("click", (e) => {
+      renderImage();
     });
   </script>
 </html>
