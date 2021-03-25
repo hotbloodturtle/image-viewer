@@ -51,6 +51,11 @@
         .img-container__right {
           margin-left: 20px;
         }
+        img {
+          min-width: unset;
+          max-width: unset;
+          height: 100vw;
+        }
       }
     </style>
   </head>
@@ -100,12 +105,23 @@
       return Math.floor(Math.random() * (max - min)) + min;
     };
 
-    const renderImage = () => {
-      document.getElementById("left-img").src =
-        store.animalImages[getRandomInt(0, store.animalImages.length)];
+    const renderImage = (imgElement) => {
+      if (imgElement === undefined) {
+        document.getElementById("left-img").src =
+          store.animalImages[getRandomInt(0, store.animalImages.length)];
 
-      document.getElementById("right-img").src =
-        store.characterImages[getRandomInt(0, store.characterImages.length)];
+        document.getElementById("right-img").src =
+          store.characterImages[getRandomInt(0, store.characterImages.length)];
+        return;
+      }
+
+      if (imgElement.id == "left-img") {
+        imgElement.src =
+          store.animalImages[getRandomInt(0, store.animalImages.length)];
+      } else {
+        imgElement.src =
+          store.characterImages[getRandomInt(0, store.characterImages.length)];
+      }
     };
 
     window.addEventListener("DOMContentLoaded", (e) => {
@@ -113,7 +129,7 @@
         setStore(images);
         getData("../photo/reference/character").then((images) => {
           setStore([], images);
-          renderImage(store.animalImages);
+          renderImage();
         });
       });
     });
@@ -124,7 +140,9 @@
       }
     });
     document.body.addEventListener("click", (e) => {
-      renderImage();
+      if (e.target.tagName === "IMG") {
+        renderImage(e.target);
+      }
     });
   </script>
 </html>
