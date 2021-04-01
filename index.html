@@ -77,6 +77,12 @@
           .then((response) => response.text())
           .then((text) => JSON.parse(text))
           .then(({ animals, characters }) => {
+            // const randomAnimals = animals.sort(() => 0.5 - Math.random());
+            const randomAnimals = animals;
+            const randomCharacters = characters.sort(
+              () => Math.random() - Math.random()
+            );
+
             for (let i = 0; i < animals.length; i++) {
               const merged = document.createElement("div");
               merged.classList.add("animal__merged");
@@ -84,7 +90,8 @@
               const left = document.createElement("div");
               left.classList.add("animal__merged--left");
               const leftImg = document.createElement("img");
-              leftImg.src = "/" + animals[getRandomInt(0, animals.length)];
+              leftImg.src =
+                "/" + randomAnimals[getRandomInt(0, animals.length)];
               leftImg.classList.add("animal-image");
               left.appendChild(leftImg);
               merged.appendChild(left);
@@ -93,7 +100,7 @@
               right.classList.add("animal__merged--right");
               const rightImg = document.createElement("img");
               rightImg.src =
-                "/" + characters[getRandomInt(0, characters.length)];
+                "/" + randomCharacters[getRandomInt(0, characters.length)];
               right.appendChild(rightImg);
               merged.appendChild(right);
 
@@ -110,8 +117,12 @@
 
       // init
       document.addEventListener("DOMContentLoaded", () => {
-        if (window.location.pathname !== "/") {
-          window.location.href = "/";
+        if (window.location.pathname.indexOf("animal") > -1) {
+          ((list) => {
+            getResults(list[list.length - 1]);
+          })(window.location.pathname.split("/"));
+        } else if (window.location.pathname === "/") {
+          getAnimals();
         }
 
         _animalListNode.addEventListener("click", (e) => {
@@ -132,7 +143,6 @@
                 headers: {
                   "Content-Type": "application/json",
                 },
-                // body: JSON.stringify({ hi: "hi" }),
                 body: JSON.stringify({ animalName, animalPath }),
               });
             }, 1000);
@@ -150,7 +160,6 @@
             getAnimals();
           }
         };
-        getAnimals();
       });
     </script>
   </body>

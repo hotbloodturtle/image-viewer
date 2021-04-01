@@ -19,13 +19,17 @@ const getAnimals = (source) => {
 
 const getFiles = (source) => {
   return new Promise((resolve, reject) => {
-    readdir(source, { withFileTypes: true }, (err, files) => {
-      resolve(
-        files
-          .filter((file) => file.isFile() && file.name !== ".DS_Store")
-          .map((file) => `${source}/${file.name}`)
-      );
-    });
+    readdir(
+      decodeURIComponent(source),
+      { withFileTypes: true },
+      (err, files) => {
+        resolve(
+          files
+            .filter((file) => file.isFile() && file.name !== ".DS_Store")
+            .map((file) => `${source}/${file.name}`)
+        );
+      }
+    );
   });
 };
 
@@ -83,7 +87,12 @@ const startServer = () => {
               decodeURIComponent(splits[splits.length - 1])
             ))(animalPath.split(`${request.headers.host}/`));
           console.log(imgPath);
+          console.log(imgPath.replace("1", "2"));
           //   rename(imgPath, imgPath.replace("1", "2"));
+          // rename(imgPath, imgPath.replace("1", "2"), (err) => {
+          //   if (err) throw err;
+          //   console.log("Rename complete!");
+          // });
         });
       } else {
         const staticPath = path.join(
