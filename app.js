@@ -1,11 +1,14 @@
 const http = require("http");
 const path = require("path");
+const os = require("os");
+
 const {
   readFile,
   readdirSync,
   readdir,
   existsSync,
   createReadStream,
+  rename,
 } = require("fs");
 
 const getAnimals = (source) => {
@@ -28,7 +31,7 @@ const getFiles = (source) => {
 
 const getIndexPage = () => {
   return new Promise((resolve, reject) => {
-    readFile("./index2.html", (err, html) => {
+    readFile("./index.html", (err, html) => {
       if (err) throw err;
       resolve(html);
     });
@@ -46,24 +49,58 @@ const startServer = () => {
         });
       } else if (request.url === "/animals") {
         response.writeHead(200);
-        response.write(JSON.stringify(getAnimals("/photo/reference/animal")));
+        response.write(JSON.stringify(getAnimals("photo/reference/animal")));
         response.end();
-      } else if (request.url === "/test") {
-        getFiles("photo/reference/animal").then((result) => {
-          response.writeHead(200);
-          response.write(JSON.stringify(result));
+      } else if (request.url.indexOf("/results") > -1) {
+        let params;
+        const sParams = request.url.split("?")[1];
+        if (sParams) {
+          const liParams = sParams.split("&").map((item) => item.split("="));
+          params = Object.fromEntries(liParams);
+        }
+        if (params.hasOwnProperty("dir")) {
+          getFiles(`photo/reference/animal/${params.dir}`).then((animals) => {
+            getFiles("photo/reference/character").then((characters) => {
+              response.writeHead(200);
+              response.write(JSON.stringify({ animals, characters }));
+              response.end();
+            });
+          });
+        } else {
+          response.writeHead(404);
           response.end();
+        }
+      } else if (request.url === "/create-folder" && request.method == "POST") {
+        let body = "";
+        request.on("data", (data) => {
+          body += data;
+        });
+        request.on("end", () => {
+          const { animalName, animalPath } = JSON.parse(body);
+          const imgPath = ((splits) =>
+            path.join(
+              __dirname,
+              decodeURIComponent(splits[splits.length - 1])
+            ))(animalPath.split(`${request.headers.host}/`));
+          console.log(imgPath);
+          //   rename(imgPath, imgPath.replace("1", "2"));
         });
       } else {
-        const staticPath = path.join(__dirname, request.url);
+        const staticPath = path.join(
+          __dirname,
+          decodeURIComponent(request.url)
+        );
         if (existsSync(staticPath)) {
           const s = createReadStream(staticPath);
           s.on("open", () => {
             s.pipe(response);
           });
         } else {
-          response.writeHead(404);
-          response.end();
+          getIndexPage().then((html) => {
+            response.writeHead(200);
+            response.write(html);
+            response.end();
+          });
         }
       }
     })

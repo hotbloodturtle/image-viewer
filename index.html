@@ -6,23 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
-      .img-container {
+      .animal__merged {
         display: flex;
         width: 100vw;
-        height: 100vh;
+        align-items: center;
+        margin-top: 100px;
       }
-      .img-container__left,
-      .img-container__right {
+      .animal__merged--left,
+      .animal__merged--right {
         width: 50%;
         height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
       }
-      .img-container__left {
+      .animal__merged--left {
         justify-content: flex-end;
       }
-      .img-container__right {
+      .img-animal__merged--right {
         justify-content: flex-start;
         margin-left: 50px;
       }
@@ -30,119 +31,127 @@
         max-width: 60%;
         min-width: 500px;
       }
-
-      @media (max-width: 1000px) {
-        img {
-          min-width: 250px;
-        }
-        body {
-          transform: rotate(90deg);
-        }
-        .img-container {
-          width: 100vh;
-          height: 100vw;
-          display: flex;
-          align-items: center;
-        }
-        .img-container__left,
-        .img-container__right {
-          width: 100%;
-        }
-        .img-container__right {
-          margin-left: 20px;
-        }
-        img {
-          min-width: unset;
-          max-width: unset;
-          height: 100vw;
-        }
-      }
     </style>
   </head>
   <body>
-    <div class="img-container">
-      <div class="img-container__left">
-        <img src="" alt="" id="left-img" />
-      </div>
-      <div class="img-container__right">
-        <img src="" alt="" id="right-img" />
-      </div>
+    <div class="animal">
+      <ul class="animal__list"></ul>
+      <ul class="animal__detail"></ul>
     </div>
-  </body>
-  <script>
-    let store = {
-      animalImages: [],
-      characterImages: [],
-      minCount: 0,
-    };
+    <script>
+      // constants
+      const _animalListNode = document.querySelector(".animal__list");
+      const _animalDetailNode = document.querySelector(".animal__detail");
 
-    const setStore = (animalImages = [], characterImages = []) => {
-      store.animalImages = [...store.animalImages, ...animalImages];
-      store.characterImages = [...store.characterImages, ...characterImages];
-    };
+      // variable
+      let _timerId;
 
-    const getData = (url) => {
-      return new Promise((resolve, reject) => {
-        fetch(url)
-          .then((response) => response.text())
-          .then((text) => new DOMParser().parseFromString(text, "text/html"))
-          .then((dom) => {
-            const files = dom.getElementById("files").children;
-            files[0].remove();
-            resolve(
-              Array.prototype.map.call(
-                files,
-                (item) => item.querySelector("a").href
-              )
-            );
-          });
-      });
-    };
+      // functions
+      const renderAnimal = (names) => {
+        _animalListNode.textContent = "";
 
-    const getRandomInt = (min, max) => {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min)) + min;
-    };
-
-    const renderImage = (imgElement) => {
-      if (imgElement === undefined) {
-        document.getElementById("left-img").src =
-          store.animalImages[getRandomInt(0, store.animalImages.length)];
-
-        document.getElementById("right-img").src =
-          store.characterImages[getRandomInt(0, store.characterImages.length)];
-        return;
-      }
-
-      if (imgElement.id == "left-img") {
-        imgElement.src =
-          store.animalImages[getRandomInt(0, store.animalImages.length)];
-      } else {
-        imgElement.src =
-          store.characterImages[getRandomInt(0, store.characterImages.length)];
-      }
-    };
-
-    window.addEventListener("DOMContentLoaded", (e) => {
-      getData("../photo/reference/animal").then((images) => {
-        setStore(images);
-        getData("../photo/reference/character").then((images) => {
-          setStore([], images);
-          renderImage();
+        names.forEach((name) => {
+          const li = document.createElement("li");
+          li.textContent = name;
+          li.classList.add("animal__item");
+          _animalListNode.appendChild(li);
         });
-      });
-    });
+      };
 
-    window.addEventListener("keyup", (e) => {
-      if (e.keyCode === 32) {
-        renderImage();
-      }
-    });
-    document.body.addEventListener("click", (e) => {
-      if (e.target.tagName === "IMG") {
-        renderImage(e.target);
-      }
-    });
-  </script>
+      const getAnimals = () => {
+        document.querySelector(".animal__detail").style.visibility = "hidden";
+        document.querySelector(".animal__list").style.visibility = "visible";
+
+        fetch("/animals")
+          .then((response) => response.text())
+          .then((text) => {
+            renderAnimal(JSON.parse(text));
+          });
+      };
+
+      const getResults = (dir) => {
+        document.querySelector(".animal__list").style.visibility = "hidden";
+        document.querySelector(".animal__detail").style.visibility = "visible";
+
+        fetch(`/results?dir=${dir}&test=test`)
+          .then((response) => response.text())
+          .then((text) => JSON.parse(text))
+          .then(({ animals, characters }) => {
+            for (let i = 0; i < animals.length; i++) {
+              const merged = document.createElement("div");
+              merged.classList.add("animal__merged");
+
+              const left = document.createElement("div");
+              left.classList.add("animal__merged--left");
+              const leftImg = document.createElement("img");
+              leftImg.src = "/" + animals[getRandomInt(0, animals.length)];
+              leftImg.classList.add("animal-image");
+              left.appendChild(leftImg);
+              merged.appendChild(left);
+
+              const right = document.createElement("div");
+              right.classList.add("animal__merged--right");
+              const rightImg = document.createElement("img");
+              rightImg.src =
+                "/" + characters[getRandomInt(0, characters.length)];
+              right.appendChild(rightImg);
+              merged.appendChild(right);
+
+              _animalDetailNode.appendChild(merged);
+            }
+          });
+      };
+
+      const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
+      };
+
+      // init
+      document.addEventListener("DOMContentLoaded", () => {
+        if (window.location.pathname !== "/") {
+          window.location.href = "/";
+        }
+
+        _animalListNode.addEventListener("click", (e) => {
+          if (e.target.classList.contains("animal__item")) {
+            const dir = e.target.textContent;
+            window.history.pushState({}, "", `/animal/${dir}`);
+            getResults(dir);
+          }
+        });
+
+        _animalDetailNode.addEventListener("mousedown", (e) => {
+          if (e.target.classList.contains("animal-image"))
+            _timerId = setTimeout(() => {
+              const animalName = prompt("animal name");
+              const animalPath = e.target.src;
+              fetch("/create-folder", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                // body: JSON.stringify({ hi: "hi" }),
+                body: JSON.stringify({ animalName, animalPath }),
+              });
+            }, 1000);
+        });
+        _animalDetailNode.addEventListener("mouseup", (e) => {
+          clearTimeout(_timerId);
+        });
+
+        window.onpopstate = (e) => {
+          if (window.location.pathname.indexOf("animal") > -1) {
+            ((list) => {
+              getResults(list[list.length - 1]);
+            })(window.location.pathname.split("/"));
+          } else if (window.location.pathname === "/") {
+            getAnimals();
+          }
+        };
+        getAnimals();
+      });
+    </script>
+  </body>
 </html>

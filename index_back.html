@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .img-container {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+      }
+      .img-container__left,
+      .img-container__right {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .img-container__left {
+        justify-content: flex-end;
+      }
+      .img-container__right {
+        justify-content: flex-start;
+        margin-left: 50px;
+      }
+      img {
+        max-width: 60%;
+        min-width: 500px;
+      }
+
+      @media (max-width: 1000px) {
+        img {
+          min-width: 250px;
+        }
+        body {
+          transform: rotate(90deg);
+        }
+        .img-container {
+          width: 100vh;
+          height: 100vw;
+          display: flex;
+          align-items: center;
+        }
+        .img-container__left,
+        .img-container__right {
+          width: 100%;
+        }
+        .img-container__right {
+          margin-left: 20px;
+        }
+        img {
+          min-width: unset;
+          max-width: unset;
+          height: 100vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="img-container">
+      <div class="img-container__left">
+        <img src="" alt="" id="left-img" />
+      </div>
+      <div class="img-container__right">
+        <img src="" alt="" id="right-img" />
+      </div>
+    </div>
+  </body>
+  <script>
+    let store = {
+      animalImages: [],
+      characterImages: [],
+      minCount: 0,
+    };
+
+    const setStore = (animalImages = [], characterImages = []) => {
+      store.animalImages = [...store.animalImages, ...animalImages];
+      store.characterImages = [...store.characterImages, ...characterImages];
+    };
+
+    const getData = (url) => {
+      return new Promise((resolve, reject) => {
+        fetch(url)
+          .then((response) => response.text())
+          .then((text) => new DOMParser().parseFromString(text, "text/html"))
+          .then((dom) => {
+            const files = dom.getElementById("files").children;
+            files[0].remove();
+            resolve(
+              Array.prototype.map.call(
+                files,
+                (item) => item.querySelector("a").href
+              )
+            );
+          });
+      });
+    };
+
+    const getRandomInt = (min, max) => {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min;
+    };
+
+    const renderImage = (imgElement) => {
+      if (imgElement === undefined) {
+        document.getElementById("left-img").src =
+          store.animalImages[getRandomInt(0, store.animalImages.length)];
+
+        document.getElementById("right-img").src =
+          store.characterImages[getRandomInt(0, store.characterImages.length)];
+        return;
+      }
+
+      if (imgElement.id == "left-img") {
+        imgElement.src =
+          store.animalImages[getRandomInt(0, store.animalImages.length)];
+      } else {
+        imgElement.src =
+          store.characterImages[getRandomInt(0, store.characterImages.length)];
+      }
+    };
+
+    window.addEventListener("DOMContentLoaded", (e) => {
+      getData("../photo/reference/animal").then((images) => {
+        setStore(images);
+        getData("../photo/reference/character").then((images) => {
+          setStore([], images);
+          renderImage();
+        });
+      });
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.keyCode === 32) {
+        renderImage();
+      }
+    });
+    document.body.addEventListener("click", (e) => {
+      if (e.target.tagName === "IMG") {
+        renderImage(e.target);
+      }
+    });
+  </script>
+</html>
