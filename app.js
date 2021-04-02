@@ -7,6 +7,7 @@ const {
   readdirSync,
   readdir,
   existsSync,
+  mkdirSync,
   createReadStream,
   rename,
 } = require("fs");
@@ -42,6 +43,17 @@ const getIndexPage = () => {
   });
 };
 
+const getAnimalsFiles = (response, characters, dirs) => {
+  let animals = [];
+  const results = dirs.map((dir) => getFiles(`photo/reference/animal/${dir}`));
+  Promise.all(results).then((values) => {
+    values.forEach((value) => animals.push(...value));
+    response.writeHead(200);
+    response.write(JSON.stringify({ animals, characters }));
+    response.end();
+  });
+};
+
 const startServer = () => {
   http
     .createServer((request, response) => {
@@ -62,14 +74,18 @@ const startServer = () => {
           const liParams = sParams.split("&").map((item) => item.split("="));
           params = Object.fromEntries(liParams);
         }
-        if (params.hasOwnProperty("dir")) {
-          getFiles(`photo/reference/animal/${params.dir}`).then((animals) => {
-            getFiles("photo/reference/character").then((characters) => {
-              response.writeHead(200);
-              response.write(JSON.stringify({ animals, characters }));
-              response.end();
-            });
+        if (params.hasOwnProperty("dirs")) {
+          getFiles("photo/reference/character").then((characters) => {
+            const dirs = params.dirs.split("-");
+            getAnimalsFiles(response, characters, dirs);
           });
+          // getFiles(`photo/reference/animal/${params.dirs}`).then((animals) => {
+          //   getFiles("photo/reference/character").then((characters) => {
+          //     response.writeHead(200);
+          //     response.write(JSON.stringify({ animals, characters }));
+          //     response.end();
+          //   });
+          // });
         } else {
           response.writeHead(404);
           response.end();
@@ -86,13 +102,29 @@ const startServer = () => {
               __dirname,
               decodeURIComponent(splits[splits.length - 1])
             ))(animalPath.split(`${request.headers.host}/`));
-          console.log(imgPath);
-          console.log(imgPath.replace("1", "2"));
-          //   rename(imgPath, imgPath.replace("1", "2"));
-          // rename(imgPath, imgPath.replace("1", "2"), (err) => {
-          //   if (err) throw err;
-          //   console.log("Rename complete!");
-          // });
+
+          let prevAnimalName = ((splits) =>
+            splits[splits.length - 1].split("/")[0])(imgPath.split("/animal/"));
+
+          const newImgPath = imgPath.replace(
+            `/${prevAnimalName}/`,
+            `/${animalName}/`
+          );
+
+          const dirPath = ((splits) => {
+            splits.pop();
+            return splits.join("/");
+          })(newImgPath.split("/"));
+
+          if (!existsSync(dirPath)) {
+            mkdirSync(dirPath);
+          }
+
+          rename(imgPath, newImgPath, (err) => {
+            if (err) throw err;
+            response.writeHead(200);
+            response.end();
+          });
         });
       } else {
         const staticPath = path.join(

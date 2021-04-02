@@ -6,11 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+      .animal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
       .animal__merged {
         display: flex;
         width: 100vw;
-        align-items: center;
-        margin-top: 100px;
+        height: 100vh;
       }
       .animal__merged--left,
       .animal__merged--right {
@@ -37,14 +41,23 @@
     <div class="animal">
       <ul class="animal__list"></ul>
       <ul class="animal__detail"></ul>
+      <div class="animal__selected">
+        <button class="animal__merge--excute">GO</button>
+        <textarea cols="30" rows="50" class="animal__selected--text"></textarea>
+      </div>
     </div>
     <script>
       // constants
       const _animalListNode = document.querySelector(".animal__list");
       const _animalDetailNode = document.querySelector(".animal__detail");
+      const _animalSelected = document.querySelector(".animal__selected");
+      const _animalMergeBtn = document.querySelector(".animal__merge--excute");
 
       // variable
       let _timerId;
+      let _animals;
+      let _characters;
+      let _selectedAnimals = [];
 
       // functions
       const renderAnimal = (names) => {
@@ -59,8 +72,9 @@
       };
 
       const getAnimals = () => {
-        document.querySelector(".animal__detail").style.visibility = "hidden";
-        document.querySelector(".animal__list").style.visibility = "visible";
+        _animalDetailNode.style.visibility = "hidden";
+        _animalListNode.style.visibility = "visible";
+        _animalSelected.style.visibility = "visible";
 
         fetch("/animals")
           .then((response) => response.text())
@@ -69,50 +83,55 @@
           });
       };
 
-      const getResults = (dir) => {
-        document.querySelector(".animal__list").style.visibility = "hidden";
-        document.querySelector(".animal__detail").style.visibility = "visible";
+      const getResults = (dirs) => {
+        _animalDetailNode.style.visibility = "visible";
+        _animalListNode.style.visibility = "hidden";
+        _animalSelected.style.visibility = "hidden";
 
-        fetch(`/results?dir=${dir}&test=test`)
+        fetch(`/results?dirs=${dirs}&test=test`)
           .then((response) => response.text())
           .then((text) => JSON.parse(text))
           .then(({ animals, characters }) => {
-            // const randomAnimals = animals.sort(() => 0.5 - Math.random());
-            const randomAnimals = animals;
-            const randomCharacters = characters.sort(
-              () => Math.random() - Math.random()
-            );
-
-            for (let i = 0; i < animals.length; i++) {
-              const merged = document.createElement("div");
-              merged.classList.add("animal__merged");
-
-              const left = document.createElement("div");
-              left.classList.add("animal__merged--left");
-              const leftImg = document.createElement("img");
-              leftImg.src =
-                "/" + randomAnimals[getRandomInt(0, animals.length)];
-              leftImg.classList.add("animal-image");
-              left.appendChild(leftImg);
-              merged.appendChild(left);
-
-              const right = document.createElement("div");
-              right.classList.add("animal__merged--right");
-              const rightImg = document.createElement("img");
-              rightImg.src =
-                "/" + randomCharacters[getRandomInt(0, characters.length)];
-              right.appendChild(rightImg);
-              merged.appendChild(right);
-
-              _animalDetailNode.appendChild(merged);
-            }
+            _animals = animals;
+            _characters = characters;
+            renderImage();
           });
+      };
+
+      const renderImage = () => {
+        _animalDetailNode.textContent = "";
+
+        const merged = document.createElement("div");
+        merged.classList.add("animal__merged");
+
+        const left = document.createElement("div");
+        left.classList.add("animal__merged--left");
+        const leftImg = document.createElement("img");
+        leftImg.src = "/" + _animals[getRandomInt(0, _animals.length)];
+        leftImg.classList.add("animal-image");
+        left.appendChild(leftImg);
+        merged.appendChild(left);
+
+        const right = document.createElement("div");
+        right.classList.add("animal__merged--right");
+        const rightImg = document.createElement("img");
+        rightImg.src = "/" + _characters[getRandomInt(0, _characters.length)];
+        right.appendChild(rightImg);
+        merged.appendChild(right);
+
+        _animalDetailNode.appendChild(merged);
       };
 
       const getRandomInt = (min, max) => {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min)) + min;
+      };
+
+      const renderSelectedAnimals = (animals) => {
+        document.querySelector(
+          ".animal__selected--text"
+        ).textContent = animals.join("\n");
       };
 
       // init
@@ -127,9 +146,16 @@
 
         _animalListNode.addEventListener("click", (e) => {
           if (e.target.classList.contains("animal__item")) {
-            const dir = e.target.textContent;
-            window.history.pushState({}, "", `/animal/${dir}`);
-            getResults(dir);
+            const animalName = e.target.textContent;
+            const animalIndex = _selectedAnimals.findIndex(
+              (animal) => animal === animalName
+            );
+            if (animalIndex > -1) {
+              _selectedAnimals.splice(animalIndex, 1);
+            } else {
+              _selectedAnimals.push(animalName);
+            }
+            renderSelectedAnimals(_selectedAnimals);
           }
         });
 
@@ -144,6 +170,10 @@
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ animalName, animalPath }),
+              }).then((response) => {
+                if (response.status === 200) {
+                  location.reload();
+                }
               });
             }, 1000);
         });
@@ -160,6 +190,26 @@
             getAnimals();
           }
         };
+
+        window.addEventListener("keyup", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (
+            e.keyCode === 32 &&
+            _animals.length > 0 &&
+            _characters.length > 0
+          ) {
+            renderImage();
+          }
+        });
+
+        _animalMergeBtn.addEventListener("click", (e) => {
+          if (_selectedAnimals.length > 0) {
+            const dirs = _selectedAnimals.join("-");
+            window.history.pushState({}, "", `/animal/${dirs}`);
+            getResults(dirs);
+          }
+        });
       });
     </script>
   </body>
