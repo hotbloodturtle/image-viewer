@@ -11,6 +11,9 @@
         justify-content: center;
         align-items: center;
       }
+      .animal__detail {
+        padding: 0;
+      }
       .animal__merged {
         display: flex;
         width: 100vw;
@@ -40,6 +43,7 @@
   <body>
     <div class="animal">
       <ul class="animal__list"></ul>
+      <p class="animal__count"></p>
       <ul class="animal__detail"></ul>
       <div class="animal__selected">
         <button class="animal__merge--excute">GO</button>
@@ -59,6 +63,8 @@
       let _characters;
       let _selectedAnimals = [];
 
+      let _aniamlCount = 0;
+
       // functions
       const renderAnimal = (names) => {
         _animalListNode.textContent = "";
@@ -74,7 +80,7 @@
       const getAnimals = () => {
         _animalDetailNode.style.visibility = "hidden";
         _animalListNode.style.visibility = "visible";
-        _animalSelected.style.visibility = "visible";
+        _animalSelected.style.display = "block";
 
         fetch("/animals")
           .then((response) => response.text())
@@ -86,7 +92,7 @@
       const getResults = (dirs) => {
         _animalDetailNode.style.visibility = "visible";
         _animalListNode.style.visibility = "hidden";
-        _animalSelected.style.visibility = "hidden";
+        _animalSelected.style.display = "none";
 
         fetch(`/results?dirs=${dirs}&test=test`)
           .then((response) => response.text())
@@ -99,6 +105,9 @@
       };
 
       const renderImage = () => {
+        document.querySelector(
+          ".animal__count"
+        ).textContent = `${_aniamlCount} / ${_animals.length}`;
         _animalDetailNode.textContent = "";
 
         const merged = document.createElement("div");
@@ -107,7 +116,7 @@
         const left = document.createElement("div");
         left.classList.add("animal__merged--left");
         const leftImg = document.createElement("img");
-        leftImg.src = "/" + _animals[getRandomInt(0, _animals.length)];
+        leftImg.src = "/" + _animals[_aniamlCount];
         leftImg.classList.add("animal-image");
         left.appendChild(leftImg);
         merged.appendChild(left);
@@ -172,7 +181,7 @@
                 body: JSON.stringify({ animalName, animalPath }),
               }).then((response) => {
                 if (response.status === 200) {
-                  location.reload();
+                  // location.reload();
                 }
               });
             }, 1000);
@@ -192,13 +201,19 @@
         };
 
         window.addEventListener("keyup", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
           if (
             e.keyCode === 32 &&
             _animals.length > 0 &&
             _characters.length > 0
           ) {
+            renderImage();
+          } else if (e.keyCode === 37) {
+            _aniamlCount =
+              _aniamlCount <= 0 ? _animals.length - 1 : (_aniamlCount -= 1);
+            renderImage();
+          } else if (e.keyCode === 39) {
+            _aniamlCount =
+              _aniamlCount < _animals.length ? (_aniamlCount += 1) : 0;
             renderImage();
           }
         });
