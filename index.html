@@ -68,6 +68,11 @@
       const renderAnimal = (names) => {
         _animalListNode.textContent = "";
 
+        const li = document.createElement("li");
+        li.textContent = "all";
+        li.classList.add("animal__item");
+        _animalListNode.appendChild(li);
+
         names.forEach((name) => {
           const li = document.createElement("li");
           li.textContent = name;
@@ -99,6 +104,8 @@
           .then(({ animals, characters }) => {
             _animals = animals;
             _characters = characters;
+
+            _animals.sort(() => 0.5 - Math.random());
             renderImage();
           });
       };
@@ -196,19 +203,28 @@
         };
 
         window.addEventListener("keyup", (e) => {
-          if (e.keyCode === 37 || e.keyCode === 32) {
-            _aniamlCount =
-              _aniamlCount <= 0 ? _animals.length - 1 : (_aniamlCount -= 1);
-            renderImage();
-          } else if (e.keyCode === 39) {
+          if (e.keyCode === 32 || e.keyCode === 39) {
             _aniamlCount =
               _aniamlCount < _animals.length - 1 ? (_aniamlCount += 1) : 0;
+            renderImage();
+          } else if (e.keyCode === 37) {
+            _aniamlCount =
+              _aniamlCount <= 0 ? _animals.length - 1 : (_aniamlCount -= 1);
             renderImage();
           }
         });
 
         _animalMergeBtn.addEventListener("click", (e) => {
           if (_selectedAnimals.length > 0) {
+            if (_selectedAnimals[0] === "all") {
+              let els = [];
+              document.querySelectorAll(".animal__item").forEach((item) => {
+                if (item.textContent !== "all" && item.textContent !== "etc") {
+                  els.push(item.textContent);
+                }
+              });
+              _selectedAnimals = els;
+            }
             const dirs = _selectedAnimals.join("-");
             window.history.pushState({}, "", `/animal/${dirs}`);
             getResults(dirs);
