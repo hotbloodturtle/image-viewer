@@ -43,7 +43,6 @@
   <body>
     <div class="animal">
       <ul class="animal__list"></ul>
-      <p class="animal__count"></p>
       <ul class="animal__detail"></ul>
       <div class="animal__selected">
         <button class="animal__merge--excute">GO</button>
@@ -78,8 +77,8 @@
       };
 
       const getAnimals = () => {
-        _animalDetailNode.style.visibility = "hidden";
-        _animalListNode.style.visibility = "visible";
+        _animalDetailNode.style.display = "none";
+        _animalListNode.style.display = "block";
         _animalSelected.style.display = "block";
 
         fetch("/animals")
@@ -90,8 +89,8 @@
       };
 
       const getResults = (dirs) => {
-        _animalDetailNode.style.visibility = "visible";
-        _animalListNode.style.visibility = "hidden";
+        _animalDetailNode.style.display = "block";
+        _animalListNode.style.display = "none";
         _animalSelected.style.display = "none";
 
         fetch(`/results?dirs=${dirs}&test=test`)
@@ -105,11 +104,7 @@
       };
 
       const renderImage = () => {
-        document.querySelector(
-          ".animal__count"
-        ).textContent = `${_aniamlCount} / ${_animals.length}`;
         _animalDetailNode.textContent = "";
-
         const merged = document.createElement("div");
         merged.classList.add("animal__merged");
 
@@ -201,19 +196,13 @@
         };
 
         window.addEventListener("keyup", (e) => {
-          if (
-            e.keyCode === 32 &&
-            _animals.length > 0 &&
-            _characters.length > 0
-          ) {
-            renderImage();
-          } else if (e.keyCode === 37) {
+          if (e.keyCode === 37 || e.keyCode === 32) {
             _aniamlCount =
               _aniamlCount <= 0 ? _animals.length - 1 : (_aniamlCount -= 1);
             renderImage();
           } else if (e.keyCode === 39) {
             _aniamlCount =
-              _aniamlCount < _animals.length ? (_aniamlCount += 1) : 0;
+              _aniamlCount < _animals.length - 1 ? (_aniamlCount += 1) : 0;
             renderImage();
           }
         });
