@@ -210,6 +210,9 @@
           if (e.target.classList.contains("animal-image"))
             _timerId = setTimeout(() => {
               const animalName = prompt("animal name");
+              if (animalName === null) {
+                return;
+              }
               const animalPath = e.target.src;
               fetch("/create-folder", {
                 method: "POST",
