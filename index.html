@@ -44,6 +44,7 @@
     <div class="animal">
       <ul class="animal__list"></ul>
       <ul class="animal__detail"></ul>
+      <ul class="animal__grid"></ul>
       <div class="animal__selected">
         <button class="animal__merge--excute">GO</button>
         <textarea cols="30" rows="50" class="animal__selected--text"></textarea>
@@ -131,6 +132,41 @@
         merged.appendChild(right);
 
         _animalDetailNode.appendChild(merged);
+
+        const btnGrid = document.createElement("button");
+        btnGrid.textContent = "Grid";
+        btnGrid.style.position = "absolute";
+        btnGrid.style.width = "60px";
+        btnGrid.style.height = "30px";
+        btnGrid.style.top = "10px";
+        btnGrid.style.left = "10px";
+        btnGrid.addEventListener("click", (e) => renderGridImages());
+        _animalDetailNode.append(btnGrid);
+      };
+
+      const renderGridImages = () => {
+        _animalDetailNode.style.display = "none";
+        const animalGrid = document.querySelector(".animal__grid");
+        animalGrid.style.width = "100%";
+        animalGrid.style.display = "grid";
+        animalGrid.style.gridTemplateColumns = "repeat(4, auto)";
+        for (let i = 0; i < _animals.length; i++) {
+          const item = document.createElement("div");
+          item.style.width = "1rm";
+          item.style.height = "300px";
+          item.style.marginRight = "10px";
+          item.style.marginBottom = "10px";
+          if (i % 2 == 0) {
+            item.style.backgroundImage = `url('/${_animals[i]}')`;
+          } else {
+            item.style.backgroundImage = `url('/${_characters[i]}')`;
+          }
+
+          item.style.backgroundSize = "cover";
+          item.style.backgroundPosition = "50% 50%";
+
+          animalGrid.appendChild(item);
+        }
       };
 
       const getRandomInt = (min, max) => {
