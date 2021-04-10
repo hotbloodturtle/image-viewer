@@ -86,6 +86,7 @@
         _animalDetailNode.style.display = "none";
         _animalListNode.style.display = "block";
         _animalSelected.style.display = "block";
+        document.querySelector(".animal__grid").style.display = "none";
 
         fetch("/animals")
           .then((response) => response.text())
@@ -159,7 +160,9 @@
           if (i % 2 == 0) {
             item.style.backgroundImage = `url('/${_animals[i]}')`;
           } else {
-            item.style.backgroundImage = `url('/${_characters[i]}')`;
+            item.style.backgroundImage = `url('/${
+              _characters[getRandomInt(0, _characters.length)]
+            }')`;
           }
 
           item.style.backgroundSize = "cover";
