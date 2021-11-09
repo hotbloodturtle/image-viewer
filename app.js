@@ -9,7 +9,8 @@ const {
   createReadStream,
 } = require("fs");
 
-const ROOT_PATH = '/Users/kanghaeseok/storage/emulated/0'; // todo
+// const ROOT_PATH = '/Users/kanghaeseok/storage/emulated/0';
+const ROOT_PATH = '/storage/emulated/0';
 const ANIMAL_PATH = ROOT_PATH + '/DCIM/Screenshots'
 const CHARACTER_PATH = ROOT_PATH + '/Download'
 
