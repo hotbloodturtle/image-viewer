@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .animal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .animal__detail {
+        padding: 0;
+      }
+      .animal__merged {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+      }
+      .animal__merged--left,
+      .animal__merged--right {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .animal__merged--left {
+        justify-content: flex-end;
+      }
+      .img-animal__merged--right {
+        justify-content: flex-start;
+        margin-left: 50px;
+      }
+      img {
+        max-width: 60%;
+        min-width: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="animal">
+      <ul class="animal__list"></ul>
+      <ul class="animal__detail"></ul>
+      <ul class="animal__grid"></ul>
+      <div class="animal__selected">
+        <button class="animal__merge--excute">GO</button>
+        <textarea cols="30" rows="50" class="animal__selected--text"></textarea>
+      </div>
+    </div>
+    <script>
+      // constants
+      const _animalListNode = document.querySelector(".animal__list");
+      const _animalDetailNode = document.querySelector(".animal__detail");
+      const _animalSelected = document.querySelector(".animal__selected");
+      const _animalMergeBtn = document.querySelector(".animal__merge--excute");
+
+      // variable
+      let _timerId;
+      let _animals;
+      let _characters;
+      let _selectedAnimals = [];
+
+      let _animalCount = 0;
+
+      // functions
+      const renderAnimal = (names) => {
+        _animalListNode.textContent = "";
+
+        const li = document.createElement("li");
+        li.textContent = "all";
+        li.classList.add("animal__item");
+        _animalListNode.appendChild(li);
+
+        names.forEach((name) => {
+          const li = document.createElement("li");
+          li.textContent = name;
+          li.classList.add("animal__item");
+          _animalListNode.appendChild(li);
+        });
+      };
+
+      const getAnimals = () => {
+        _animalDetailNode.style.display = "none";
+        _animalListNode.style.display = "block";
+        _animalSelected.style.display = "block";
+        document.querySelector(".animal__grid").style.display = "none";
+
+        fetch("/animals")
+          .then((response) => response.text())
+          .then((text) => {
+            renderAnimal(JSON.parse(text));
+          });
+      };
+
+      const getResults = (dirs) => {
+        _animalDetailNode.style.display = "block";
+        _animalListNode.style.display = "none";
+        _animalSelected.style.display = "none";
+
+        fetch(`/results?dirs=${dirs}&test=test`)
+          .then((response) => response.text())
+          .then((text) => JSON.parse(text))
+          .then(({ animals, characters }) => {
+            _animals = animals;
+            _characters = characters;
+
+            _animals.sort(() => 0.5 - Math.random());
+            renderImage();
+          });
+      };
+
+      const renderImage = () => {
+        _animalDetailNode.textContent = "";
+        const merged = document.createElement("div");
+        merged.classList.add("animal__merged");
+
+        const left = document.createElement("div");
+        left.classList.add("animal__merged--left");
+        const leftImg = document.createElement("img");
+        leftImg.src = "/" + _animals[_animalCount];
+        leftImg.classList.add("animal-image");
+        left.appendChild(leftImg);
+        merged.appendChild(left);
+
+        const right = document.createElement("div");
+        right.classList.add("animal__merged--right");
+        const rightImg = document.createElement("img");
+        rightImg.src = "/" + _characters[getRandomInt(0, _characters.length)];
+        right.appendChild(rightImg);
+        merged.appendChild(right);
+
+        _animalDetailNode.appendChild(merged);
+
+        const btnGrid = document.createElement("button");
+        btnGrid.textContent = "Grid";
+        btnGrid.style.position = "absolute";
+        btnGrid.style.width = "60px";
+        btnGrid.style.height = "30px";
+        btnGrid.style.top = "10px";
+        btnGrid.style.left = "10px";
+        btnGrid.addEventListener("click", (e) => renderGridImages());
+        _animalDetailNode.append(btnGrid);
+      };
+
+      const renderGridImages = () => {
+        _animalDetailNode.style.display = "none";
+        const animalGrid = document.querySelector(".animal__grid");
+        animalGrid.style.width = "100%";
+        animalGrid.style.display = "grid";
+        animalGrid.style.gridTemplateColumns = "repeat(4, auto)";
+        for (let i = 0; i < _animals.length; i++) {
+          const item = document.createElement("div");
+          item.style.width = "1rm";
+          item.style.height = "300px";
+          item.style.marginRight = "10px";
+          item.style.marginBottom = "10px";
+          if (i % 2 == 0) {
+            item.style.backgroundImage = `url('/${_animals[i]}')`;
+          } else {
+            item.style.backgroundImage = `url('/${
+              _characters[getRandomInt(0, _characters.length)]
+            }')`;
+          }
+
+          item.style.backgroundSize = "cover";
+          item.style.backgroundPosition = "50% 50%";
+
+          animalGrid.appendChild(item);
+        }
+      };
+
+      const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min;
+      };
+
+      const renderSelectedAnimals = (animals) => {
+        document.querySelector(
+          ".animal__selected--text"
+        ).textContent = animals.join("\n");
+      };
+
+      // init
+      document.addEventListener("DOMContentLoaded", () => {
+        if (window.location.pathname.indexOf("animal") > -1) {
+          ((list) => {
+            getResults(list[list.length - 1]);
+          })(window.location.pathname.split("/"));
+        } else if (window.location.pathname === "/") {
+          getAnimals();
+        }
+
+        _animalListNode.addEventListener("click", (e) => {
+          if (e.target.classList.contains("animal__item")) {
+            const animalName = e.target.textContent;
+            const animalIndex = _selectedAnimals.findIndex(
+              (animal) => animal === animalName
+            );
+            if (animalIndex > -1) {
+              _selectedAnimals.splice(animalIndex, 1);
+            } else {
+              _selectedAnimals.push(animalName);
+            }
+            renderSelectedAnimals(_selectedAnimals);
+          }
+        });
+
+        _animalDetailNode.addEventListener("mousedown", (e) => {
+          if (e.target.classList.contains("animal-image"))
+            _timerId = setTimeout(() => {
+              const animalName = prompt("animal name");
+              if (animalName === null) {
+                return;
+              }
+              const animalPath = e.target.src;
+              fetch("/create-folder", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ animalName, animalPath }),
+              }).then((response) => {
+                if (response.status === 200) {
+                  // location.reload();
+                }
+              });
+            }, 1000);
+        });
+        _animalDetailNode.addEventListener("mouseup", (e) => {
+          clearTimeout(_timerId);
+        });
+
+        window.onpopstate = (e) => {
+          if (window.location.pathname.indexOf("animal") > -1) {
+            ((list) => {
+              getResults(list[list.length - 1]);
+            })(window.location.pathname.split("/"));
+          } else if (window.location.pathname === "/") {
+            getAnimals();
+          }
+        };
+
+        window.addEventListener("keyup", (e) => {
+          if (e.keyCode === 32 || e.keyCode === 39) {
+            _animalCount =
+              _animalCount < _animals.length - 1 ? (_animalCount += 1) : 0;
+            renderImage();
+          } else if (e.keyCode === 37) {
+            _animalCount =
+              _animalCount <= 0 ? _animals.length - 1 : (_animalCount -= 1);
+            renderImage();
+          }
+        });
+
+        _animalMergeBtn.addEventListener("click", (e) => {
+          if (_selectedAnimals.length > 0) {
+            if (_selectedAnimals[0] === "all") {
+              let els = [];
+              document.querySelectorAll(".animal__item").forEach((item) => {
+                if (item.textContent !== "all" && item.textContent !== "etc") {
+                  els.push(item.textContent);
+                }
+              });
+              _selectedAnimals = els;
+            }
+            const dirs = _selectedAnimals.join("-");
+            window.history.pushState({}, "", `/animal/${dirs}`);
+            getResults(dirs);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
