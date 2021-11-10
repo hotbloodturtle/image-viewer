@@ -28,6 +28,28 @@
         max-width: 60%;
         min-width: 500px;
       }
+
+      @media (max-width: 1000px) {
+        img {
+          min-width: 250px;
+        }
+        body {
+          transform: rotate(90deg);
+        }
+        .animal__merged {
+          width: 100vh;
+          height: 100vw;
+          display: flex;
+          align-items: center;
+        }
+        .animal__merged--left,
+        .animal__merged--right {
+          width: 100%;
+        }
+        .animal__merged--right {
+          margin-left: 20px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -125,6 +147,16 @@
           });
       };
 
+      // prev, next function
+      const setPrev = () => {
+        _animalCount = _animalCount <= 0 ? _animals.length - 1 : (_animalCount -= 1);
+        renderImage();
+      }
+      const setNext = () => {
+        _animalCount = _animalCount < _animals.length - 1 ? (_animalCount += 1) : 0;
+        renderImage();
+      }
+
       // init
       document.addEventListener("DOMContentLoaded", () => {
 
@@ -132,15 +164,22 @@
 
         window.addEventListener("keyup", (e) => {
           if (e.keyCode === 32 || e.keyCode === 39) {
-            _animalCount =
-              _animalCount < _animals.length - 1 ? (_animalCount += 1) : 0;
-            renderImage();
+            setNext()
           } else if (e.keyCode === 37) {
-            _animalCount =
-              _animalCount <= 0 ? _animals.length - 1 : (_animalCount -= 1);
-            renderImage();
+            setPrev()
           }
         });
+
+        _animalDetailNode.addEventListener("click", (e) => {
+          console.log(e)
+          console.log(e.target)
+          if (e.target.classList.contains('animal__merged--right') || e.target.parentNode.classList.contains('animal__merged--right')) {
+            setNext()
+          } else if (e.target.classList.contains('animal__merged--left') || e.target.parentNode.classList.contains('animal__merged--left')) {
+            setPrev()
+          }
+        });
+
       });
     </script>
   </body>
