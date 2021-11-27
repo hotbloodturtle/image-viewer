@@ -7,12 +7,13 @@ const {
   readdir,
   existsSync,
   createReadStream,
+  unlinkSync,
 } = require("fs");
 
-// const ROOT_PATH = '/Users/kanghaeseok/storage/emulated/0';
-// const ANIMAL_PATH = ROOT_PATH + '/DCIM/Screenshots'
-const ROOT_PATH = '/storage/emulated/0';
-const ANIMAL_PATH = ROOT_PATH + '/Camera/Screenshots'
+const ROOT_PATH = '/Users/kanghaeseok/storage/emulated/0';
+const ANIMAL_PATH = ROOT_PATH + '/DCIM/Screenshots'
+// const ROOT_PATH = '/storage/emulated/0';
+// const ANIMAL_PATH = ROOT_PATH + '/Camera/Screenshots'
 const CHARACTER_PATH = ROOT_PATH + '/Download'
 
 const getFiles = (source) => {
@@ -56,6 +57,20 @@ const startServer = () => {
             response.write(JSON.stringify({ animals, characters }));
             response.end();
           });
+        });
+      } else if (request.url === "/delete" && request.method == "POST") {
+        let body = "";
+        request.on("data", (data) => {
+          body += data;
+        });
+        request.on("end", () => {
+          const { animalPath } = JSON.parse(body);
+          const imgPath = ((splits) => {
+            return `${ANIMAL_PATH}/${splits[splits.length - 1]}`
+          })(animalPath.split(`${request.headers.host}/`));
+          unlinkSync(imgPath);
+          response.writeHead(200);
+          response.end();
         });
       } else {
         const animalStaticPath = path.join(ANIMAL_PATH, decodeURIComponent(request.url))

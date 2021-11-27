@@ -171,13 +171,36 @@
         });
 
         _animalDetailNode.addEventListener("click", (e) => {
-          console.log(e)
-          console.log(e.target)
           if (e.target.classList.contains('animal__merged--right') || e.target.parentNode.classList.contains('animal__merged--right')) {
             setNext()
           } else if (e.target.classList.contains('animal__merged--left') || e.target.parentNode.classList.contains('animal__merged--left')) {
             setPrev()
           }
+        });
+
+        let _timerId;
+
+        _animalDetailNode.addEventListener("mousedown", (e) => {
+          console.log(e.target)
+          if (e.target.classList.contains("animal-image"))
+            _timerId = setTimeout(() => {
+              const result = confirm("delete?");
+              if (!result) {
+                return;
+              }
+              const animalPath = e.target.src;
+              fetch("/delete", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ animalPath }),
+              });
+            }, 1000);
+        });
+
+        _animalDetailNode.addEventListener("mouseup", (e) => {
+          clearTimeout(_timerId);
         });
 
       });
