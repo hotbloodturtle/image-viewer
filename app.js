@@ -10,10 +10,9 @@ const {
   unlinkSync,
 } = require("fs");
 
-const ROOT_PATH = '/Users/kanghaeseok/storage/emulated/0';
+
+const ROOT_PATH = '/storage/emulated/0';
 const ANIMAL_PATH = ROOT_PATH + '/DCIM/Screenshots'
-// const ROOT_PATH = '/storage/emulated/0';
-// const ANIMAL_PATH = ROOT_PATH + '/Camera/Screenshots'
 const CHARACTER_PATH = ROOT_PATH + '/Download'
 
 const getFiles = (source) => {
@@ -58,7 +57,7 @@ const startServer = () => {
             response.end();
           });
         });
-      } else if (request.url === "/delete" && request.method == "POST") {
+      } else if (request.url === "/delete" && request.method === "POST") {
         let body = "";
         request.on("data", (data) => {
           body += data;
